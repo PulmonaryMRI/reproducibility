@@ -22,8 +22,9 @@ import ProtonMRILungSegmentation
 #img_path = '/data/larson4/UTE_Lung/2020-08-20_vo/cfl/P56320/MRI_Raw_pr_rec_v3.nii'
 #img_path = '/data/larson4/UTE_Lung/2020-09-14_vo/cfl/P12288/MRI_Raw_pr_rec_v3.nii'
 #img_path = '/data/larson4/UTE_Lung/2020-09-21_vo/cfl/P28672/MRI_Raw_pr_rec_v3.nii'
-#img_path = '/data/larson4/UTE_Lung/2020-11-10_vo/cfl/P08704/MRI_Raw_pr_rec_v3.nii'
-img_path = '/data/larson4/UTE_Lung/2021-03-12_vo/cfl/P90112/MRI_Raw_pr_rec_v3.nii'
+img_path = '/data/larson4/UTE_Lung/2020-11-10_vo/cfl/P12800/MRI_Raw_pr_rec_v3.nii'
+#img_path = '/data/larson4/UTE_Lung/2021-03-12_vo/cfl/P90112/MRI_Raw_pr_rec_v3.nii'
+#img_path = '/data/larson4/UTE_Lung/2021-04-06_ped_patient/cfl/P38400/MRI_Raw_pr_rec_v3.nii'
 
 image = ants.image_read(img_path)
 image_np = image.numpy()
@@ -36,8 +37,9 @@ image_np = image_np / np.amax(image_np)
 #output_file_prefix = '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P56320/'
 #output_file_prefix = '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P12288/'
 #output_file_prefix ='/data/larson4/UTE_Lung/2020-09-21_vo/seg/P28672/'
-#output_file_prefix ='/data/larson4/UTE_Lung/2020-11-10_vo/seg/P08704/'
-output_file_prefix = '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/'
+output_file_prefix ='/data/larson4/UTE_Lung/2020-11-10_vo/seg/P12800/'
+#output_file_prefix = '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/'
+#output_file_prefix = '/data/larson4/UTE_Lung/2021-04-06_ped_patient/seg/P38400/'
 
 
 # In[3]:
@@ -120,20 +122,20 @@ ants.image_write(mask_close_ants, mask_close_dir)
 # In[5]:
 
 
-import sigpy.plot as plt
-plt.ImagePlot(mask * image_np, x = 0, y = 2)
+import sigpy.plot as pl
+pl.ImagePlot(mask * image_np, x = 0, y = 2)
 
 
 # In[6]:
 
 
-plt.ImagePlot(mask_dilate * image_np, x = 0, y = 2)
+pl.ImagePlot(mask_dilate * image_np, x = 0, y = 2)
 
 
 # In[7]:
 
 
-plt.ImagePlot(mask_close * image_np, x = 0, y = 2)
+pl.ImagePlot(mask_close * image_np, x = 0, y = 2)
 
 
 # In[ ]:
