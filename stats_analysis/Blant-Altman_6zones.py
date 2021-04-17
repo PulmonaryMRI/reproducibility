@@ -142,11 +142,11 @@ def bland_altman_jacobian_6zone(dir_list, mask_list, dir_list1, mask_list1, reg)
     df_group['avg'] = (df_group['Jac'] + df_group1['Jac']) / 2
     
     # save total Bland-Altman
-    sns.set_context("talk", font_scale = 0.85)
+    sns.set_context("talk", font_scale = 1.2)
     sns.set_style("ticks")
-    g = sns.relplot(data = df_group, x = "avg", y = "diff", hue = "volunteer", style = "phase", col = "zone", palette = "muted", aspect = 1.2)
+    g = sns.relplot(data = df_group, x = "avg", y = "diff", hue = "volunteer", style = "phase", col = "zone", col_wrap = 2, palette = "muted", aspect = 1.2)
     g.map_dataframe(draw_mean_std, xlim = [-0.1,0.3])    
-    g.set(xlabel='Average of Total Ventilation of Two Scans ', ylabel='Difference of Total Ventilation between Two Scans', xlim=(-0.1,0.3), ylim = (-0.125, 0.125))
+    g.set(xlabel='Average of Total Ventilation \n of Two Scans ', ylabel='Difference of Total Ventilation \n between Two Scans', xlim=(-0.1,0.3), ylim = (-0.125, 0.125))
     g.savefig(output_dir + 'BlandAltman_6zone_all.png', bbox_inches='tight', dpi=300)
     
     # save individual Bland-Altman
@@ -155,18 +155,18 @@ def bland_altman_jacobian_6zone(dir_list, mask_list, dir_list1, mask_list1, reg)
         std = 1.96 * np.std(df_group[df_group["zone"]==zone_list[ind+1]]["diff"])
         mean = np.mean(df_group[df_group["zone"]==zone_list[ind+1]]["diff"])
         # Bland-Altman plot
-        sns.set_context("talk", font_scale = 0.85)
+        sns.set_context("talk", font_scale = 1.2)
         sns.set_style("ticks")
         sns_plot = sns.relplot(data = df_group[df_group["zone"]==zone_list[ind+1]], x = "avg", y = "diff", hue = "volunteer", style = "phase", palette = "muted", aspect = 1.2)
-        sns_plot.set(xlabel='Average of Total Ventilation of Two Scans ', ylabel='Difference of Total Ventilation between Two Scans', xlim=(-0.1,0.3), ylim = (-0.125, 0.125))
+        sns_plot.set(xlabel='Average of Total Ventilation \n of Two Scans ', ylabel='Difference of Total Ventilation \n between Two Scans', xlim=(-0.1,0.3), ylim = (-0.125, 0.125))
         xlim = [-0.1, 0.3]
         # mean and 1.96 std lines
         plt.plot(xlim, [mean+std, mean+std],'k--', xlim, [mean-std, mean-std],'k--')
         plt.plot(xlim, [mean, mean])
         # add text to the lines
-        plt.text(0.3, mean, 'Mean \n %.2e' % mean, fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
-        plt.text(0.3, mean+std, '+1.96 SD \n %.2e' % (mean+std), fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
-        plt.text(0.3, mean-std, '-1.96 SD \n %.2e' % (mean-std), fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
+        plt.text(0.3, mean, 'Mean \n %.2e' % mean, fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
+        plt.text(0.3, mean+std, '+1.96 SD \n %.2e' % (mean+std), fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
+        plt.text(0.3, mean-std, '-1.96 SD \n %.2e' % (mean-std), fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
         # save figure
         sns_plot.savefig(output_dir + 'JD_BlandAltman_6zone_'+str(ind)+'.png', bbox_inches='tight', dpi = 300)
 
@@ -177,9 +177,9 @@ def draw_mean_std(data, xlim = [0,1], **kws):
     ax.plot(xlim, [mean+std, mean+std],'k--', xlim, [mean-std, mean-std],'k--')
     ax.plot(xlim, [mean, mean])
     # add text to the lines
-    ax.text(0.3, mean, 'Mean \n %.2e' % mean, fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
-    ax.text(0.3, mean+std, '+1.96 SD \n %.2e' % (mean+std), fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
-    ax.text(0.3, mean-std, '-1.96 SD \n %.2e' % (mean-std), fontsize=14, horizontalalignment='right', verticalalignment='center', multialignment='right')
+    ax.text(0.3, mean, 'Mean \n %.2e' % mean, fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
+    ax.text(0.3, mean+std, '+1.96 SD \n %.2e' % (mean+std), fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
+    ax.text(0.3, mean-std, '-1.96 SD \n %.2e' % (mean-std), fontsize=20, horizontalalignment='right', verticalalignment='center', multialignment='right')
 
 def split_violin_jacobian_6zone(output_dir, mask_path_close, output_dir1, mask_path_close1):
     # load Jacobian determinant
@@ -395,6 +395,7 @@ def jacobian_coefficient_of_variation_6zone(output_dir, mask_dir, output_dir1):
     df_group['CV'] = np.exp(np.sqrt(df_group['diff'])) - 1
     
     return df_group
+
 if __name__ == '__main__':
     # 3DnT, sliding motion, ants
     output_dir_list1 = ['/data/larson4/UTE_Lung/2020-07-30_vo/reg/P44544/',
@@ -443,33 +444,34 @@ if __name__ == '__main__':
         df_tmp['reg'] = 'JD_3DnT'  
         df_all_jd = df_all_jd.append(df_tmp, ignore_index=True)
 
-    sns.set_context("talk", font_scale=1.5, rc={"lines.linewidth": 2.5})
+    
     
     # violin plots
     plt.close('all')
+    sns.set_context("talk", font_scale=1.75, rc={"lines.linewidth": 2.5})
     g1 = sns.catplot(data=df_all_jd, x="phase", y="Jac", kind = "violin", col = "zone", row="volunteer", margin_titles=True, hue="scan", split=True, inner="quart", linewidth=1.5, bw = .2, col_order = ['Lower Left','Lower Right','Middle Left','Middle Right','Upper Left','Upper Right'], palette='deep', aspect=1.2)
     g1.map_dataframe(sns.pointplot, x="phase", y="Jac",ci=None, hue="scan", dodge=0.5, estimator=np.median, palette = "tab10",markers =['.','.'],scale = 0.8)
     g1.set(ylim=(-0.5,0.8), xlabel = 'phase', ylabel = "Regional Ventilation")
     g1.savefig(output_dir1 + 'split_violin_6zone_all.png', bbox_inches='tight', dpi=300)
     
     
-    # bland_altman
-    bland_altman_jacobian_6zone(output_dir_list1, mask_dir_list1, output_dir_list2, mask_dir_list2, reg1)
+    # # bland_altman
+    # bland_altman_jacobian_6zone(output_dir_list1, mask_dir_list1, output_dir_list2, mask_dir_list2, reg1)
     
     # coefficient of variation 
-    df_all = pd.DataFrame()
-    for ind in range(len(output_dir_list1)):
-        output_dir1 = output_dir_list1[ind] + reg1
-        output_dir2 = output_dir_list2[ind] + reg1
-        mask_dir = mask_dir_list1[ind]
+    # df_all = pd.DataFrame()
+    # for ind in range(len(output_dir_list1)):
+    #     output_dir1 = output_dir_list1[ind] + reg1
+    #     output_dir2 = output_dir_list2[ind] + reg1
+    #     mask_dir = mask_dir_list1[ind]
         
-        df_tmp = jacobian_coefficient_of_variation_6zone(output_dir1, mask_dir, output_dir2)
-        df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
-        # append dataframe
-        df_all = df_all.append(df_tmp, ignore_index=True)
+    #     df_tmp = jacobian_coefficient_of_variation_6zone(output_dir1, mask_dir, output_dir2)
+    #     df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
+    #     # append dataframe
+    #     df_all = df_all.append(df_tmp, ignore_index=True)
         
-    sns.set_context("talk", font_scale = 1.2)
-    g = sns.catplot(data=df_all, x="phase", y="CV", hue="zone", kind = "box", palette = 'colorblind', legend_out = True, height = 8, aspect = 1.2, row_order = ['Lower Left','Lower Right','Middle Left','Middle Right','Upper Left','Upper Right'])
-    plt.ylabel("coefficient of variation")
-    plt.xlabel("respiratory phase")
-    g.savefig(output_dir_list1[-1] + reg1 + 'coefficient_of_variation_6zone.png', bbox_inches='tight', dpi = 300)
+    # sns.set_context("talk", font_scale = 1.2)
+    # g = sns.catplot(data=df_all, x="phase", y="CV", hue="zone", kind = "box", palette = 'colorblind', legend_out = True, height = 8, aspect = 1.2, row_order = ['Lower Left','Lower Right','Middle Left','Middle Right','Upper Left','Upper Right'])
+    # plt.ylabel("coefficient of variation")
+    # plt.xlabel("respiratory phase")
+    # g.savefig(output_dir_list1[-1] + reg1 + 'coefficient_of_variation_6zone.png', bbox_inches='tight', dpi = 300)
