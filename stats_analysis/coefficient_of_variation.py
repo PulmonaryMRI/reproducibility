@@ -178,7 +178,7 @@ if __name__ == '__main__':
         df_tmp['CV'] = jacobian_coefficient_of_variation(output_dir1, mask_dir, output_dir2)
         df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
         df_tmp['phase'] = range(1, len(df_tmp['CV']) + 1)
-        df_tmp['Ventilation, Registration'] = 'Regional Ventilation, B-Spline'
+        df_tmp['Ventilation, Registration'] = 'Regional, B-Spline'
         # append dataframe
         df_all = df_all.append(df_tmp, ignore_index=True)
     
@@ -192,7 +192,7 @@ if __name__ == '__main__':
         df_tmp['CV'] = jacobian_coefficient_of_variation(output_dir1, mask_dir, output_dir2)
         df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
         df_tmp['phase'] = range(1, len(df_tmp['CV']) + 1)
-        df_tmp['Ventilation, Registration'] = 'Regional Ventilation, SyN'
+        df_tmp['Ventilation, Registration'] = 'Regional, SyN'
         # append dataframe
         df_all = df_all.append(df_tmp, ignore_index=True)
         
@@ -206,7 +206,7 @@ if __name__ == '__main__':
         df_tmp['CV'] = sv_coefficient_of_variation(output_dir1, mask_dir, output_dir2)
         df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
         df_tmp['phase'] = range(1, len(df_tmp['CV']) + 1)
-        df_tmp['Ventilation, Registration'] = 'Specific Ventilation, B-Spline'
+        df_tmp['Ventilation, Registration'] = 'Specific, B-Spline'
         # append dataframe
         df_all = df_all.append(df_tmp, ignore_index=True)
     
@@ -220,7 +220,7 @@ if __name__ == '__main__':
         df_tmp['CV'] = sv_coefficient_of_variation(output_dir1, mask_dir, output_dir2)
         df_tmp['vol'] = (ind + 1) * np.ones(len(df_tmp['CV']))
         df_tmp['phase'] = range(1, len(df_tmp['CV']) + 1)
-        df_tmp['Ventilation, Registration'] = 'Specific Ventilation, SyN'
+        df_tmp['Ventilation, Registration'] = 'Specific, SyN'
         # append dataframe
         df_all = df_all.append(df_tmp, ignore_index=True)
 
