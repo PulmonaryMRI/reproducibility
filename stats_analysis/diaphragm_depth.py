@@ -41,3 +41,10 @@ sns.set_context("talk", font_scale=1.5, rc={"lines.linewidth": 2.5})
 g = sns.relplot(data = df, x = "phase", y ="diaphragm position", hue="scan", style="lung position", row = "volunteer", palette="deep", ci=None, markers=True, legend=False,  kind = "line", aspect = 1.2)
 g.set(xticks = [1,2,3,4,5,6,7,8,9,10,11,12])
 g.savefig(output_dir + 'diaphragm_position.png', bbox_inches='tight', dpi = 300)
+
+# correlation with median
+df_median = pd.read_pickle('/home/ftan1/Downloads/median.pkl')
+df_depth = df.groupby(['phase','volunteer']).mean()
+df_median['diaphragm position'] = np.tile(np.double(df_depth['diaphragm position']), 4)
+g1 = sns.lmplot(data = df_median, x = 'diaphragm position', y = 'ventilation', hue = 'reg', row = 'volunteer', aspect = 1.4)
+g1.savefig(output_dir + 'ventilation_median_diaphragm_position_correlation.png', bbox_inches='tight', dpi = 300)

@@ -258,3 +258,14 @@ if __name__ == '__main__':
     g2.savefig(output_dir + 'split_violin_sv.png', bbox_inches='tight', dpi=300)
     #g1 = sns.catplot(data=df_all, x="phase", y="Jac", kind = "point", row="reg", col="volunteer", margin_titles=True, hue="scan", capsize=.2, dodge=True, ci="sd", row_order = ['JD_3DnT','JD_ants','SV_3DnT','SV_ants' ])
     #g2.savefig(output_dir + 'point_plot_all.png', bbox_inches='tight', dpi=300)
+    
+    # save median to file
+    df_jd_median = df_all_jd.groupby(['reg','phase','volunteer']).median()
+    df_jd_median.reset_index(inplace=True)
+    df_sv_median = df_all_sv.groupby(['reg','phase','volunteer']).median()
+    df_sv_median.reset_index(inplace=True)
+    df_median = pd.concat([df_jd_median, df_sv_median], ignore_index=True, sort=False)
+    df_median['Jac'] = df_median['Jac'].fillna(df_median['SV'])
+    df_median = df_median.rename(columns={"Jac":"ventilation"})
+    df_median.to_pickle('/home/ftan1/Downloads/median.pkl')
+    
