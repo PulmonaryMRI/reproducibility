@@ -10,9 +10,9 @@
 %H5fname = '/data/larson4/UTE_Lung/2020-08-20_vo/cfl/P56320/MRI_Raw';
 %H5fname = '/data/larson4/UTE_Lung/2020-09-14_vo/cfl/P12288/MRI_Raw';
 %H5fname = '/data/larson4/UTE_Lung/2020-09-21_vo/cfl/P28672/MRI_Raw';
-H5fname = '/data/larson4/UTE_Lung/2020-11-10_vo/cfl/P08704/MRI_Raw';
+%H5fname = '/data/larson4/UTE_Lung/2020-11-10_vo/cfl/P08704/MRI_Raw';
 
-%H5fname = '/data/larson4/UTE_Lung/2020-07-30_vo/cfl/P48128/MRI_Raw';
+H5fname = '/data/larson4/UTE_Lung/2020-07-30_vo/cfl/P48128/MRI_Raw';
 %H5fname = '/data/larson4/UTE_Lung/2020-08-20_vo/cfl/P59904/MRI_Raw';
 %H5fname = '/data/larson4/UTE_Lung/2020-09-14_vo/cfl/P15872/MRI_Raw';
 %H5fname = '/data/larson4/UTE_Lung/2020-09-21_vo/cfl/P32768/MRI_Raw';
@@ -26,8 +26,9 @@ outfname = H5fname;
 
 % H5fname = '/data/larson4/UTE_Lung/2019-01-18_vo/NBDB/MRI_Raw';
 % outfname = '/data/larson4/UTE_Lung/2019-01-18_vo/UTElrs/20190118_vo';
+maxNumCompThreads('automatic')
 
-h5_convert_mTE(H5fname, outfname)
+h5_convert_mTE(H5fname, outfname, 1, 1000, [1,1,1])
 
 %% _resp
 motion_flag = 0; % 0 = bellow, 1 = k0
@@ -43,7 +44,8 @@ ute_data_weighting_pr_v2(outfname, 12, 0)
 
 %% high res motion resolved recon
 system(['maps.sh ' outfname]) % sensitivity maps
-command = ['bart pics -p ' outfname '_dcf_prm -i 30 -R T:1024:0:.01 -R W:7:0:0.01 -t ' outfname '_traj_prm ' outfname '_data_prm ' outfname '_maps_pr ' outfname '_pr_rec_v3'];
+%command = ['bart pics -p ' outfname '_dcf_prm -i 30 -R T:1024:0:.01 -R W:7:0:0.01 -t ' outfname '_traj_prm ' outfname '_data_prm ' outfname '_maps_pr ' outfname '_pr_rec_v3'];
+command = ['bart pics -p ' outfname '_dcf_prm -i 30 -R T:1024:0:0 -R W:7:0:0.01 -t ' outfname '_traj_prm ' outfname '_data_prm ' outfname '_maps_pr ' outfname '_pr_rec'];
 system(command)
 % command = ['bart pics -p ' outfname '_dcf_pr_nb -i 30 -R T:7:0:.01 -R W:7:0:0.01 -t ' outfname '_traj_pr_nb ' outfname '_data_pr_nb ' outfname '_maps ' outfname '_pr_rec_nb'];
 % system(command)
@@ -51,8 +53,8 @@ system(command)
 % system(command)
 
 %% readcfl
-pr_rec = squeeze(readcfl([outfname '_pr_rec_v3']));
-niftiwrite(abs(pr_rec), [outfname '_pr_rec_v3.nii'])
+pr_rec = squeeze(readcfl([outfname '_pr_rec']));
+niftiwrite(abs(pr_rec), [outfname '_pr_rec.nii'])
 
 % pr_rec = squeeze(readcfl([outfname '_pr_rec_nb']));
 % niftiwrite(abs(pr_rec), [outfname '_pr_rec_nb.nii'])

@@ -21,7 +21,7 @@ bart fmac $in"_data_pr" $in"_dcf_pr" $in"_dcfdata"
 
 # Iterative gridding on center
 
-bart nufft -d 208:128:160 -a $in"_traj_pr" $in"_dcfdata" $in"_calib"
+bart nufft -a -d 160:160:160 $in"_traj_pr" $in"_dcfdata" $in"_calib"
 
 bart fft 7 $in"_calib" $in"_kcalib"
 
