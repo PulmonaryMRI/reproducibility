@@ -328,7 +328,7 @@ def display_jacobian_2d(output_dir, mask_path_close):
     # display overlaid Jacobian
     for phase in range(np.shape(JacDet_np)[0]):
         fig = plt.figure()
-        slc = 64
+        slc = 80
         # load tight mask
         mask_close = sitk.ReadImage(mask_path_close)
         mask_close_np = sitk.GetArrayFromImage(mask_close)
@@ -348,6 +348,7 @@ def display_jacobian_2d(output_dir, mask_path_close):
         plt.show()
         
         plt.savefig(output_dir + 'JD_3DnT_p' + str(phase) + '.png', transparent=True)
+        plt.close()
 
 def display_sv_4d(output_dir, mask_path_close):
     # Display Specific Ventilation with Sigpy
@@ -371,6 +372,21 @@ def display_sv_4d(output_dir, mask_path_close):
     pl.ImagePlot(tranResultImage_np, x = -1, y = -3,  overlay = SV_masked,alpha=0.5)
     
 def display_sv_2d(output_dir, mask_path_close):
+    '''
+    Calculate and save specific ventilation, gaussian smooth in 3D spatial dimension only
+
+    Parameters
+    ----------
+    output_dir : STRING
+        3D + t registration result image directory nii
+    mask_path_close : STRING
+        segmentation mask directory nii
+
+    Returns
+    -------
+    None.
+
+    '''
     # load registered image
     tranResultImage = sitk.ReadImage(output_dir + "result_4d.nii")
     tranResultImage_np = sitk.GetArrayFromImage(tranResultImage)
@@ -385,26 +401,30 @@ def display_sv_2d(output_dir, mask_path_close):
     # col 1: Specific Ventilation
     ## gaussian filtering, taking lung border into account
     density = fl.uniform_filter(mask_close_rep, size = (0,5,5,5))
-    result_gauss = fl.gaussian_filter(tranResultImage_np * mask_close_rep, (0,2,2,2), truncate = 1) # gaussian kernel width = 3 
+    result_gauss = fl.gaussian_filter(tranResultImage_np * mask_close_rep, (0,3,3,3), truncate = 1) # gaussian kernel radius = 3 
     result_gauss_dens = result_gauss / (density + np.finfo(float).eps)
     ## calculate specific ventilation
     result_rep = np.tile(result_gauss_dens[ref,:,:,:], [result_shape[0],1,1,1])
     SV = (result_rep - result_gauss_dens) / (result_gauss_dens + np.finfo(float).eps)
+    ###test
+    #tranResultImage_rep = np.tile(tranResultImage_np[ref,:,:,:], [np.shape(tranResultImage_np)[0],1,1,1])
+    #SV = (tranResultImage_rep - tranResultImage_np) / (tranResultImage_np + np.finfo(float).eps)
+    ### end test
     ## eliminate extreme outliers
-    SV[(SV<-2) | (SV>2)] = np.NaN
+    #SV[(SV<-2) | (SV>2)] = np.NaN
     
     SV_masked = np.ma.masked_where(mask_close_rep==0, SV)
     # display overlaid Jacobian
     for phase in range(result_shape[0]):
         fig = plt.figure()
-        slc = 64
+        slc = 80
     
         # plot grayscale image
         fig = plt.imshow(tranResultImage_np[phase,:,slc,:], cmap = 'gray')
         fig.set_clim(np.amin(tranResultImage_np[phase,:,slc,:]), 0.6 * np.amax(tranResultImage_np[phase,:,slc,:]))
         
         # overlay masked SV        
-        fig = plt.imshow(SV_masked[phase,:,slc,:], cmap = 'viridis', alpha = 0.8, vmin = -0, vmax = 0.5)
+        fig = plt.imshow(SV_masked[phase,:,slc,:], cmap = 'viridis', alpha = 0.8, vmin = 0, vmax = 0.5)
         plt.axis('off')
         plt.colorbar(fig, extend = 'both', label='Specific Ventilation [ml/ml]', shrink = 0.8)
         plt.gca().invert_xaxis()
@@ -412,6 +432,130 @@ def display_sv_2d(output_dir, mask_path_close):
         plt.show()
         
         plt.savefig(output_dir + 'SV_3DnT_p' + str(phase) + '.png', transparent=True)
+        plt.close()
+
+def display_sv_2d_smooth(output_dir, mask_path_close):
+    '''
+    Calculate and save specific ventilation, gaussian smooth in 3D spatial dimension and temporal dimension
+
+    Parameters
+    ----------
+    output_dir : STRING
+        3D + t registration result image directory nii
+    mask_path_close : STRING
+        segmentation mask directory nii
+
+    Returns
+    -------
+    None.
+
+    '''
+    # load registered image
+    tranResultImage = sitk.ReadImage(output_dir + "result_4d.nii")
+    tranResultImage_np = sitk.GetArrayFromImage(tranResultImage)
+    ref = 0
+    result_shape = np.shape(tranResultImage_np)
+    
+    # load tight mask
+    mask_close = sitk.ReadImage(mask_path_close)
+    mask_close_np = sitk.GetArrayFromImage(mask_close)
+    mask_close_rep = np.tile(mask_close_np[ref,:,:,:], [np.shape(tranResultImage_np)[0],1,1,1])
+    
+    # Specific Ventilation
+    ## gaussian filtering time domain
+    result_gauss = fl.gaussian_filter(tranResultImage_np * mask_close_rep, (3,0,0,0), mode='wrap', truncate=1) # gaussian kernel radius = 3 
+    
+    ## gaussian filtering, taking lung border into account
+    density = fl.uniform_filter(mask_close_rep, size = (0,5,5,5))
+    result_gauss = fl.gaussian_filter(result_gauss, (0,3,3,3), truncate = 1) # gaussian kernel radius = 3 
+    result_gauss_dens = result_gauss / (density + np.finfo(float).eps)
+    
+    ## calculate specific ventilation
+    result_rep = np.tile(result_gauss_dens[ref,:,:,:], [result_shape[0],1,1,1])
+    SV = (result_rep - result_gauss_dens) / (result_gauss_dens + np.finfo(float).eps)
+    
+    ## save SV
+    SV_sitk = sitk.GetImageFromArray(SV, isVector=False)
+    sitk.WriteImage(SV_sitk, output_dir + "SV_sm_4d.nii")
+    
+    # mask SV
+    SV_masked = np.ma.masked_where(mask_close_rep==0, SV)
+    # display overlaid SV
+    for phase in range(result_shape[0]):
+        fig = plt.figure()
+        slc = 80
+    
+        # plot grayscale image
+        fig = plt.imshow(tranResultImage_np[phase,:,slc,:], cmap = 'gray')
+        fig.set_clim(np.amin(tranResultImage_np[phase,:,slc,:]), 0.6 * np.amax(tranResultImage_np[phase,:,slc,:]))
+        
+        # overlay masked SV        
+        fig = plt.imshow(SV_masked[phase,:,slc,:], cmap = 'viridis', alpha = 0.8, vmin = 0, vmax = 0.5)
+        plt.axis('off')
+        plt.colorbar(fig, extend = 'both', label='Specific Ventilation [ml/ml]', shrink = 0.8)
+        plt.gca().invert_xaxis()
+        plt.gca().invert_yaxis()
+        plt.show()
+        
+        plt.savefig(output_dir + 'SV_3DnT_sm_p' + str(phase) + '.png', transparent=True)
+        plt.close()
+        
+def display_sv_2d_nosmooth(output_dir, mask_path_close):
+    '''
+    Calculate and save specific ventilation, no gaussian smooth in any dimension
+
+    Parameters
+    ----------
+    output_dir : STRING
+        3D + t registration result image directory nii
+    mask_path_close : STRING
+        segmentation mask directory nii
+
+    Returns
+    -------
+    None.
+
+    '''
+    # load registered image
+    tranResultImage = sitk.ReadImage(output_dir + "result_4d.nii")
+    tranResultImage_np = sitk.GetArrayFromImage(tranResultImage)
+    ref = 0
+    result_shape = np.shape(tranResultImage_np)
+    
+    # load tight mask
+    mask_close = sitk.ReadImage(mask_path_close)
+    mask_close_np = sitk.GetArrayFromImage(mask_close)
+    mask_close_rep = np.tile(mask_close_np[ref,:,:,:], [np.shape(tranResultImage_np)[0],1,1,1])
+    
+    # col 1: Specific Ventilation
+    ## gaussian filtering time domain
+
+    ## calculate specific ventilation
+    tranResultImage_rep = np.tile(tranResultImage_np[ref,:,:,:], [np.shape(tranResultImage_np)[0],1,1,1])
+    SV = (tranResultImage_rep - tranResultImage_np) / (tranResultImage_np + np.finfo(float).eps)
+    ## eliminate extreme outliers
+    #SV[(SV<-2) | (SV>2)] = np.NaN
+    
+    SV_masked = np.ma.masked_where(mask_close_rep==0, SV)
+    # display overlaid Jacobian
+    for phase in range(result_shape[0]):
+        fig = plt.figure()
+        slc = 80
+    
+        # plot grayscale image
+        fig = plt.imshow(tranResultImage_np[phase,:,slc,:], cmap = 'gray')
+        fig.set_clim(np.amin(tranResultImage_np[phase,:,slc,:]), 0.6 * np.amax(tranResultImage_np[phase,:,slc,:]))
+        
+        # overlay masked SV        
+        fig = plt.imshow(SV_masked[phase,:,slc,:], cmap = 'viridis', alpha = 0.8, vmin = 0, vmax = 0.5)
+        plt.axis('off')
+        plt.colorbar(fig, extend = 'both', label='Specific Ventilation [ml/ml]', shrink = 0.8)
+        plt.gca().invert_xaxis()
+        plt.gca().invert_yaxis()
+        plt.show()
+        
+        plt.savefig(output_dir + 'SV_3DnT_nsm_p' + str(phase) + '.png', transparent=True)
+        plt.close()
         
 if __name__ == '__main__':
     
@@ -423,21 +567,59 @@ if __name__ == '__main__':
     python elastix.py 2020-08-20_vo P56320
     """
 
-    # take input
-    date = str(sys.argv[1]) #'2020-08-20_vo'
-    pfile = str(sys.argv[2]) #'P56320'
+    # # take input
+    # date = str(sys.argv[1]) #'2020-08-20_vo'
+    # pfile = str(sys.argv[2]) #'P56320'
+    date_list = ['2020-07-30_vo',
+                 '2020-08-20_vo',
+                 '2020-09-14_vo',
+                 '2020-09-21_vo',
+                 '2020-11-10_vo',
+                 '2021-03-12_vo',
+                 '2020-07-30_vo',
+                 '2020-08-20_vo',
+                 '2020-09-14_vo',
+                 '2020-09-21_vo',
+                 '2020-11-10_vo',
+                 '2021-03-12_vo']
+
     
-    # directories
-    output_dir = '/data/larson4/UTE_Lung/' + date + '/reg/' + pfile + '/3DnT_BSpline/'
-    image_path = '/data/larson4/UTE_Lung/' + date + '/cfl/' + pfile + '/MRI_Raw_pr_rec_v3.nii'
-    mask_path_dilate = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_dilate.nii'
-    mask_path_close = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_close.nii'
+    pfile_list = ['P44544',
+                  'P56320',
+                  'P12288',
+                  'P28672',
+                  'P08704',
+                  'P86528',
+                  'P48128',
+                  'P59904',
+                  'P15872',
+                  'P32768',
+                  'P12800',
+                  'P90112']
     
-    # registration
-    elastix_reg(image_path, mask_path_dilate, output_dir)
-    combine_par(output_dir)
-    transformix_reg(output_dir, image_path)
-    display_jacobian_4d(output_dir, mask_path_close)
-    display_sv_4d(output_dir, mask_path_close)
-    display_sv_2d(output_dir, mask_path_close)
-    display_jacobian_2d(output_dir, mask_path_close)
+    for ind in range(len(date_list)):
+        # take input
+        date = date_list[ind]
+        pfile = pfile_list[ind]
+        
+        # directories
+        output_dir = '/data/larson4/UTE_Lung/' + date + '/reg/' + pfile + '/3DnT_BSpline/'
+        image_path = '/data/larson4/UTE_Lung/' + date + '/cfl/' + pfile + '/MRI_Raw_pr_rec.nii'
+        mask_path_dilate = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_dilate.nii'
+        mask_path_close = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_close.nii'
+        
+        # # registration
+        # elastix_reg(image_path, mask_path_dilate, output_dir)
+        # combine_par(output_dir)
+        # transformix_reg(output_dir, image_path)
+        
+        # Jacobian Determinant
+        # display_jacobian_4d(output_dir, mask_path_close)
+        # display_jacobian_2d(output_dir, mask_path_close)
+        
+        # Specific Ventilation
+        # display_sv_4d(output_dir, mask_path_close)
+        # display_sv_2d(output_dir, mask_path_close)
+        
+        display_sv_2d_smooth(output_dir, mask_path_close)
+        # display_sv_2d_nosmooth(output_dir, mask_path_close)
