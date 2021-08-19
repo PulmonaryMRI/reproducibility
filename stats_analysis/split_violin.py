@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import SimpleITK as sitk
 import matplotlib.pyplot as plt
-import scipy.ndimage.filters as fl
 
 def split_violin_jacobian(output_dir, mask_path_close, output_dir1, mask_path_close1):
     
