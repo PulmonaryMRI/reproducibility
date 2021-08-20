@@ -148,7 +148,8 @@ if __name__ == '__main__':
                  '2020-09-14_vo',
                  '2020-09-21_vo',
                  '2020-11-10_vo',
-                 '2021-03-12_vo']
+                 '2021-03-12_vo'
+                 ]
 
     
     pfile_list = ['P44544',
@@ -162,7 +163,8 @@ if __name__ == '__main__':
                   'P15872',
                   'P32768',
                   'P12800',
-                  'P90112']
+                  'P90112'
+                  ]
     
     for ind in range(len(date_list)):
         # take input
@@ -191,8 +193,8 @@ if __name__ == '__main__':
         mask_path_close = mask_dir + "lung_mask_close.nii"
         
         # ANTs registration
-        #ants_reg(image_path, output_dir, mask_path_dilate)
-        #display_jacobian_4d(output_dir, mask_path_close)
+        ants_reg(image_path, output_dir, mask_path_dilate)
+        display_jacobian_4d(output_dir, mask_path_close)
         display_sv_4d_smooth(output_dir, mask_path_close)
 
 

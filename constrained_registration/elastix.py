@@ -608,18 +608,18 @@ if __name__ == '__main__':
         mask_path_dilate = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_dilate.nii'
         mask_path_close = '/data/larson4/UTE_Lung/' + date + '/seg/' + pfile + '/lung_mask_close.nii'
         
-        # # registration
-        # elastix_reg(image_path, mask_path_dilate, output_dir)
-        # combine_par(output_dir)
-        # transformix_reg(output_dir, image_path)
+        # registration
+        elastix_reg(image_path, mask_path_dilate, output_dir)
+        combine_par(output_dir)
+        transformix_reg(output_dir, image_path)
         
         # Jacobian Determinant
-        # display_jacobian_4d(output_dir, mask_path_close)
-        # display_jacobian_2d(output_dir, mask_path_close)
+        display_jacobian_4d(output_dir, mask_path_close)
+        display_jacobian_2d(output_dir, mask_path_close)
         
         # Specific Ventilation
-        # display_sv_4d(output_dir, mask_path_close)
-        # display_sv_2d(output_dir, mask_path_close)
+        display_sv_4d(output_dir, mask_path_close)
+        display_sv_2d(output_dir, mask_path_close)
         
         display_sv_2d_smooth(output_dir, mask_path_close)
-        # display_sv_2d_nosmooth(output_dir, mask_path_close)
+        display_sv_2d_nosmooth(output_dir, mask_path_close)
