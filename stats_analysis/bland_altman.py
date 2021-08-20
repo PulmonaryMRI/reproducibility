@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import SimpleITK as sitk
 import matplotlib.pyplot as plt
-import scipy.ndimage.filters as fl
 from scipy import stats
 
 def bland_altman_jacobian(dir_list, mask_list, dir_list1, mask_list1, reg):
@@ -205,9 +204,9 @@ def bland_altman_sv(dir_list, mask_list, dir_list1, mask_list1, reg):
         output_dir = dir_list[ind] + reg
         print(output_dir)
         # load registered image 1
-        result_4d = sitk.ReadImage(output_dir + "result_4d.nii")
-        result_np = np.abs(sitk.GetArrayFromImage(result_4d))
-        result_shape = np.shape(result_np)
+        SV_4d = sitk.ReadImage(output_dir + "SV_sm_4d.nii")
+        SV = np.abs(sitk.GetArrayFromImage(SV_4d))
+        result_shape = np.shape(SV)
         
         # load tight mask
         mask_dir = mask_list[ind]
@@ -219,15 +218,6 @@ def bland_altman_sv(dir_list, mask_list, dir_list1, mask_list1, reg):
             
         # create dataframe 
         # col 1: Specific Ventilation
-        ## gaussian filtering, taking lung border into account
-        density = fl.uniform_filter(mask_close_rep, size = (0,5,5,5))
-        result_gauss = fl.gaussian_filter(result_np * mask_close_np, (0,2,2,2), truncate = 1) # gaussian kernel width = 3
-        result_gauss_dens = result_gauss / (density + np.finfo(float).eps)
-        ## calculate specific ventilation
-        result_rep = np.tile(result_gauss_dens[ref,:,:,:], [result_shape[0],1,1,1])
-        SV = (result_rep - result_gauss_dens) / (result_gauss_dens + np.finfo(float).eps)
-        ## eliminate extreme outliers
-        SV[(SV<-2) | (SV>2)] = np.NaN
         SV_np_col = np.reshape(SV, (result_shape[0] * result_shape[1] * result_shape[2] * result_shape[3]))
         df = pd.DataFrame(data=SV_np_col, columns=["SV"])
         # col 2: Mask
@@ -260,9 +250,9 @@ def bland_altman_sv(dir_list, mask_list, dir_list1, mask_list1, reg):
         output_dir1 = dir_list1[ind1] + reg_list[0]
         print(output_dir1)
         # load registered image 2
-        result_4d1 = sitk.ReadImage(output_dir1 + "result_4d.nii")
-        result_np1 = np.abs(sitk.GetArrayFromImage(result_4d1))
-        result_shape1 = np.shape(result_np1)
+        SV_4d1 = sitk.ReadImage(output_dir1 + "SV_sm_4d.nii")
+        SV1 = np.abs(sitk.GetArrayFromImage(SV_4d1))
+        result_shape1 = np.shape(SV1)
     
         # load tight mask
         mask_dir1 = mask_list1[ind1]
@@ -274,15 +264,6 @@ def bland_altman_sv(dir_list, mask_list, dir_list1, mask_list1, reg):
         
         # create dataframe 
         # col 1: Specific Ventilation
-        ## gaussian filtering, taking lung border into account
-        density1 = fl.uniform_filter(mask_close_rep1, size = (0,5,5,5))
-        result_gauss1 = fl.gaussian_filter(result_np1 * mask_close_np1, (0,2,2,2), truncate = 1) # gaussian kernel width = 3 
-        result_gauss_dens1 = result_gauss1 / (density1 + np.finfo(float).eps)
-        ## calculate specific ventilation
-        result_rep1 = np.tile(result_gauss_dens1[ref,:,:,:], [result_shape1[0],1,1,1])
-        SV1 = (result_rep1 - result_gauss_dens1) / (result_gauss_dens1 + np.finfo(float).eps)
-        ## eliminate extreme outliers
-        SV1[(SV1<-2) | (SV1>2)] = np.NaN
         SV_np_col1 = np.reshape(SV1, (result_shape1[0] * result_shape1[1] * result_shape1[2] * result_shape1[3]))
         df1 = pd.DataFrame(data=SV_np_col1, columns=["SV"])
         # col 2: Mask
