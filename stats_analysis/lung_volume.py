@@ -152,7 +152,7 @@ if __name__ == '__main__':
     g.set(xticks = [1,2,3,4,5,6,7,8,9,10,11,12])
     g.savefig(output_dir1 + 'lung_volume.png', bbox_inches='tight', dpi = 300)
     
-    g1 = sns.lmplot(data = df_all, x = "mask", y ="volume", hue="ventilation, registration", row = "volunteer", palette="deep", aspect = 1.5, markers='x', hue_order=("regional, b-spline", "regional, SyN","specific, b-spline","specific, SyN"))
+    g1 = sns.lmplot(data = df_all, x = "mask", y ="volume", hue="ventilation, registration", row = "volunteer", palette="deep", aspect = 1.5, markers='o', hue_order=("regional, b-spline", "regional, SyN","specific, b-spline","specific, SyN"))
     g1.map_dataframe(draw_corr)
     g1.set(xlabel = 'segmentation volume', ylabel = "ventilation volume")
-    g1.savefig(output_dir1 + 'lung_volume_corr.png', bbox_inches='tight', dpi = 300)
+    g1.savefig(output_dir1 + 'lung_volume_corr_o.png', bbox_inches='tight', dpi = 300)
