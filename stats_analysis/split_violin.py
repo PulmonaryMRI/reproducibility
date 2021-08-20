@@ -14,16 +14,21 @@ def split_violin_jacobian(output_dir, mask_path_close, output_dir1, mask_path_cl
     JacDet = sitk.ReadImage(output_dir + "JacDet_4d.nii")
     JacDet_np = sitk.GetArrayFromImage(JacDet)
     Jac_shape = np.shape(JacDet_np)    
-    
+    JacDet_np = JacDet_np - 1
+
     # load mask 1
     ref = 0
     mask_close = sitk.ReadImage(mask_path_close)
     mask_close_np = sitk.GetArrayFromImage(mask_close)
     mask_close_rep = np.tile(mask_close_np[ref,:,:,:], [Jac_shape[0],1,1,1])
-
+    
+    # # normalization
+    # JacDet_sum = np.sum(JacDet_np * mask_close_rep) / np.sum(mask_close_rep)
+    # JacDet_np = JacDet_np / JacDet_sum
+    
     # create dataframe 
     # col 1: Jacobian determiant
-    JacDet_np_col = np.reshape(JacDet_np-1, (Jac_shape[0] * Jac_shape[1] * Jac_shape[2] * Jac_shape[3]))
+    JacDet_np_col = np.reshape(JacDet_np, (Jac_shape[0] * Jac_shape[1] * Jac_shape[2] * Jac_shape[3]))
     df = pd.DataFrame(data=JacDet_np_col, columns=["Jac"])
     # col 2: Mask
     mask_re = np.reshape(mask_close_rep, (Jac_shape[0] * Jac_shape[1] * Jac_shape[2] * Jac_shape[3]))
@@ -43,15 +48,22 @@ def split_violin_jacobian(output_dir, mask_path_close, output_dir1, mask_path_cl
     # load Jacobian determinant 2
     JacDet1 = sitk.ReadImage(output_dir1 + "JacDet_4d.nii")
     JacDet_np1 = sitk.GetArrayFromImage(JacDet1)
-    Jac_shape1 = np.shape(JacDet_np1)
+    Jac_shape1 = np.shape(JacDet_np1)  
+    JacDet_np1 = JacDet_np1 - 1
+
+    
     # load mask 
     mask_close1 = sitk.ReadImage(mask_path_close1)
     mask_close_np1 = sitk.GetArrayFromImage(mask_close1)
     mask_close_rep1 = np.tile(mask_close_np1[ref,:,:,:], [Jac_shape1[0],1,1,1])
- 
+    
+    # # normalization
+    # JacDet_sum1 = np.sum(JacDet_np1 * mask_close_rep1) / np.sum(mask_close_rep1)
+    # JacDet_np1 = JacDet_np1 / JacDet_sum1
+    
     # create dataframe 2
     # col 1: Jacobian determiant
-    JacDet_np_col1 = np.reshape(JacDet_np1-1, (Jac_shape1[0] * Jac_shape1[1] * Jac_shape1[2] * Jac_shape1[3]))
+    JacDet_np_col1 = np.reshape(JacDet_np1, (Jac_shape1[0] * Jac_shape1[1] * Jac_shape1[2] * Jac_shape1[3]))
     df1 = pd.DataFrame(data=JacDet_np_col1, columns=["Jac"])
     # col 2: Mask
     mask_re1 = np.reshape(mask_close_rep1, (Jac_shape1[0] * Jac_shape1[1] * Jac_shape1[2] * Jac_shape1[3]))
@@ -78,6 +90,7 @@ def split_violin_jacobian(output_dir, mask_path_close, output_dir1, mask_path_cl
     sns_plot = sns.violinplot(data=df_concat, x="phase", y="Jac", hue="scan",
                    split=True, inner="quart", linewidth=1.5, bw = .2)
     sns_plot.set_ylim(-0.2, 0.6)
+    #sns_plot.set_ylim(-10, 15)
     sns_plot.set(ylabel='Regional Ventilation (Jac - 1)')
     sns_plot.figure.savefig(output_dir + 'JD_split_violin.png', bbox_inches='tight', dpi=300)
     
@@ -89,13 +102,17 @@ def split_violin_sv(output_dir, mask_path_close, output_dir1, mask_path_close1):
     SV_4d = sitk.ReadImage(output_dir + "SV_sm_4d.nii")
     SV = np.abs(sitk.GetArrayFromImage(SV_4d))
     result_shape = np.shape(SV)
-    
+
     # load mask 1
     ref = 0
     mask_close = sitk.ReadImage(mask_path_close)
     mask_close_np = sitk.GetArrayFromImage(mask_close)
     mask_close_rep = np.tile(mask_close_np[ref,:,:,:], [result_shape[0],1,1,1])
-        
+    
+    # # normalization
+    # SV_sum = np.sum(SV * mask_close_rep) / np.sum(mask_close_rep)
+    # SV = SV / SV_sum
+    
     # create dataframe 
     # col 1: Specific Ventilation
     SV_np_col = np.reshape(SV, (result_shape[0] * result_shape[1] * result_shape[2] * result_shape[3]))
@@ -118,12 +135,16 @@ def split_violin_sv(output_dir, mask_path_close, output_dir1, mask_path_close1):
     SV_4d1 = sitk.ReadImage(output_dir1 + "SV_sm_4d.nii")
     SV1 = np.abs(sitk.GetArrayFromImage(SV_4d1))
     result_shape1 = np.shape(SV1)
-    
+
     # load mask 
     mask_close1 = sitk.ReadImage(mask_path_close1)
     mask_close_np1 = sitk.GetArrayFromImage(mask_close1)
     mask_close_rep1 = np.tile(mask_close_np1[ref,:,:,:], [result_shape1[0],1,1,1])
-      
+    
+    # # normalization
+    # SV_sum1 = np.sum(SV1 * mask_close_rep1) / np.sum(mask_close_rep1)
+    # SV1 = SV1 / SV_sum1
+    
     # create dataframe 2
     # col 1: Specific Ventilation
     SV_np_col1 = np.reshape(SV1, (result_shape1[0] * result_shape1[1] * result_shape1[2] * result_shape1[3]))
@@ -150,7 +171,8 @@ def split_violin_sv(output_dir, mask_path_close, output_dir1, mask_path_close1):
     sns.set_context("talk")
     sns_plot = sns.violinplot(data=df_concat, x="phase", y="SV", hue="scan",
                    split=True, inner="quart", linewidth=1.5, bw = .2)
-    sns_plot.set_ylim(-1, 1)
+    sns_plot.set_ylim(-0.2, 0.6)
+    # sns_plot.set_ylim(-10, 15)
     sns_plot.set(ylabel='Specific Ventilation')
     sns_plot.figure.savefig(output_dir + 'SV_split_violin_k5.png', bbox_inches='tight', dpi=300)
     return df_concat
@@ -230,12 +252,14 @@ if __name__ == '__main__':
     g1 = sns.catplot(data=df_all_jd, x="phase", y="Jac", kind = "violin", col="reg", row="volunteer", margin_titles=True, hue="scan", split=True, inner="quart", linewidth=1.5, bw = .2, col_order = ['JD_3DnT','JD_ants'], palette='deep', aspect = 1.2)
     g1.map_dataframe(sns.pointplot, x="phase", y="Jac",ci=None, hue="scan", dodge=0.5, estimator=np.median, palette = "tab10",markers =['.','.'],scale = 0.8)
     g1.set(ylim=(-0.5,0.8), xlabel = 'phase', ylabel = "Regional Ventilation")
+    # g1.set(ylim=(-10,15), xlabel = 'phase', ylabel = "Regional Ventilation")
     g1.savefig(output_dir + 'split_violin_jd.png', bbox_inches='tight', dpi=300)
     
     plt.close()   
     g2 = sns.catplot(data=df_all_sv, x="phase", y="SV", kind = "violin", col="reg", row="volunteer", margin_titles=True, hue="scan", split=True, inner="quart", linewidth=1.5, bw = .2, col_order = ['SV_3DnT','SV_ants'], palette='deep', aspect = 1.2)
     g2.map_dataframe(sns.pointplot, x="phase", y="SV",ci=None, hue="scan", dodge=0.5, estimator=np.median, palette = "tab10",markers =['.','.'],scale = 0.8)
     g2.set(ylim=(-0.5,0.8), xlabel = 'phase', ylabel = "Specific Ventilation")
+    # g2.set(ylim=(-10,15), xlabel = 'phase', ylabel = "Specific Ventilation")
     g2.savefig(output_dir + 'split_violin_sv.png', bbox_inches='tight', dpi=300)
     #g1 = sns.catplot(data=df_all, x="phase", y="Jac", kind = "point", row="reg", col="volunteer", margin_titles=True, hue="scan", capsize=.2, dodge=True, ci="sd", row_order = ['JD_3DnT','JD_ants','SV_3DnT','SV_ants' ])
     #g2.savefig(output_dir + 'point_plot_all.png', bbox_inches='tight', dpi=300)
