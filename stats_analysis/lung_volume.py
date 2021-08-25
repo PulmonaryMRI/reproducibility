@@ -9,7 +9,6 @@ Created on Wed Apr 14 20:51:52 2021
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.ndimage.filters as fl
 import pandas as pd
 import seaborn as sns
 from scipy.stats.stats import pearsonr
@@ -22,9 +21,9 @@ def lung_volume(output_dir1, mask_path_close1):
     Jac_shape1 = np.shape(JacDet_np1)    
     
     # load registered image 1
-    result_4d1 = sitk.ReadImage(output_dir1 + "result_4d.nii")
-    result_np1 = np.abs(sitk.GetArrayFromImage(result_4d1))
-    result_shape1 = np.shape(result_np1)
+    SV_4d1 = sitk.ReadImage(output_dir1 + "SV_sm_4d.nii")
+    SV1 = sitk.GetArrayFromImage(SV_4d1)
+    result_shape1 = np.shape(SV1)
     
     # load mask 1
     ref = 0
@@ -35,19 +34,6 @@ def lung_volume(output_dir1, mask_path_close1):
     # calculate mask and vent volume
     mask_volume1 = np.sum(np.reshape(mask_close_np1-mask_close_rep1,(Jac_shape1[0], Jac_shape1[1] * Jac_shape1[2] * Jac_shape1[3])), axis=1) * (0.025 ** 3)
     JD_volume1 = np.sum(np.reshape(mask_close_rep1*(JacDet_np1-1),(Jac_shape1[0], Jac_shape1[1] * Jac_shape1[2] * Jac_shape1[3])), axis=1) * (0.025 ** 3)
-    
-    # calculate vent volume
-    # Specific Ventilation
-    ## gaussian filtering, taking lung border into account
-    density1 = fl.uniform_filter(mask_close_rep1, size = (0,5,5,5))
-    result_gauss1 = fl.gaussian_filter(result_np1 * mask_close_np1, (0,2,2,2), truncate = 1) # gaussian kernel width = 3 
-    result_gauss_dens1 = result_gauss1 / (density1 + np.finfo(float).eps)
-    ## calculate specific ventilation
-    result_rep1 = np.tile(result_gauss_dens1[ref,:,:,:], [result_shape1[0],1,1,1])
-    SV1 = (result_rep1 - result_gauss_dens1) / (result_gauss_dens1 + np.finfo(float).eps)
-    ## eliminate extreme outliers
-    SV1[(SV1<-1)] = -1
-    SV1[(SV1>2)] = 2
     SV_volume1 = np.sum(np.reshape(mask_close_rep1*(SV1), (result_shape1[0], result_shape1[1] * result_shape1[2] * result_shape1[3])), axis=1) * (0.025 ** 3)
     
     
@@ -71,7 +57,8 @@ def draw_corr(data, **kws):
     
     
 if __name__ == '__main__':
-        # 3DnT, sliding motion, ants
+
+    # scan 1 image dir list
     output_dir_list1 = ['/data/larson4/UTE_Lung/2020-07-30_vo/reg/P44544/',
                        '/data/larson4/UTE_Lung/2020-08-20_vo/reg/P56320/',
                        '/data/larson4/UTE_Lung/2020-09-14_vo/reg/P12288/',
@@ -79,7 +66,7 @@ if __name__ == '__main__':
                        '/data/larson4/UTE_Lung/2020-11-10_vo/reg/P08704/',
                        '/data/larson4/UTE_Lung/2021-03-12_vo/reg/P86528/']
     
-    # load tight mask
+    # scan 1 tight mask list
     mask_dir_list1 = ['/data/larson4/UTE_Lung/2020-07-30_vo/seg/P44544/',
                      '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P56320/',
                      '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P12288/',
@@ -87,7 +74,7 @@ if __name__ == '__main__':
                      '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P08704/',
                      '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P86528/']
     
-    # 3DnT, sliding motion, ants
+    # scan 2 image dir list
     output_dir_list2 = ['/data/larson4/UTE_Lung/2020-07-30_vo/reg/P48128/',
                         '/data/larson4/UTE_Lung/2020-08-20_vo/reg/P59904/',
                         '/data/larson4/UTE_Lung/2020-09-14_vo/reg/P15872/',
@@ -95,7 +82,7 @@ if __name__ == '__main__':
                         '/data/larson4/UTE_Lung/2020-11-10_vo/reg/P12800/',
                         '/data/larson4/UTE_Lung/2021-03-12_vo/reg/P90112/']
     
-    # load tight mask
+    # scan 2 tight mask list
     mask_dir_list2 = ['/data/larson4/UTE_Lung/2020-07-30_vo/seg/P48128/',
                       '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P59904/',
                       '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P15872/',
@@ -103,10 +90,13 @@ if __name__ == '__main__':
                       '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P12800/',
                       '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/']
     
+    # registration method list
     reg_list = ['3DnT_BSpline/','sliding_motion/','ants_syn_concat/']
     
+    # initialization
     df_all = pd.DataFrame()
     
+    # 3D+t
     for ind in range(len(output_dir_list1)):        
         output_dir1 = output_dir_list1[ind] + reg_list[0]
         mask_path_close1 = mask_dir_list1[ind] + "lung_mask_close.nii"
@@ -125,7 +115,8 @@ if __name__ == '__main__':
         df_2['registration'] = 'b-spline'
         df_2['scan'] = 2
         df_all = df_all.append(df_2, ignore_index=True)
-        
+    
+    # SyN
     for ind in range(len(output_dir_list1)):        
         output_dir1 = output_dir_list1[ind] + reg_list[2]
         mask_path_close1 = mask_dir_list1[ind] + "lung_mask_close.nii"
@@ -145,6 +136,7 @@ if __name__ == '__main__':
         df_2['scan'] = 2
         df_all = df_all.append(df_2, ignore_index=True)
     
+    # plot with seaborn
     df_all['ventilation, registration'] = df_all['method'] + ', ' + df_all['registration']
     sns.set_context("talk", font_scale=2, rc={"lines.linewidth": 4})
     #g = sns.relplot(data = df_all, x = "phase", y ="volume", hue="method", style="registration", row = "volunteer", col="scan", palette="deep", ci=None, markers=True, kind = "line", aspect = 1.2)

@@ -127,7 +127,7 @@ def display_jacobian_diff_2d(dir_path1, mask_dir1, dir_path2, reg):
     for phase in range(np.shape(JacDet1)[-1]):
         # display overlaid Jacobian
         fig = plt.figure()
-        slc = 64
+        slc = 80
         # plot grayscale image
         fig = plt.imshow(scan1[:,slc,:,phase].T, cmap = 'gray')
         fig.set_clim(0.0, 0.7 * np.amax(scan1[:,slc,:,phase]))
@@ -150,6 +150,7 @@ def display_sv_diff_4d(dir_path1, mask_dir1, dir_path2, reg):
     # load registered image for scan 1
     scan1_path = output_dir1 + 'result_4d.nii'
     scan1 = ants.image_read(scan1_path)
+    tranResultImage_np = scan1.numpy()
     
     # load mask for scan 1
     ref = 0
@@ -159,32 +160,40 @@ def display_sv_diff_4d(dir_path1, mask_dir1, dir_path2, reg):
     mask_close_rep = np.tile(mask_close_np[...,np.newaxis], [1,1,1,np.shape(mask_close.numpy())[-1]])
     
     # calculate specific ventilation for scan 1
+    ## gaussian filtering time domain
+    result_gauss1 = fl.gaussian_filter(tranResultImage_np * mask_close_rep, (0,0,0,3), mode='wrap', truncate=1) # gaussian kernel radius = 3 
     ## gaussian filtering, taking lung border into account
     density1 = fl.uniform_filter(mask_close_rep, size = (5,5,5,0))
-    result_gauss1 = fl.gaussian_filter(scan1.numpy() * mask_close_rep, (2,2,2,0), truncate = 1) # gaussian kernel width = 3 
+    result_gauss1 = fl.gaussian_filter(result_gauss1, (3,3,3,0), truncate = 1) # gaussian kernel width = 5
     result_gauss_dens1 = result_gauss1 / (density1 + np.finfo(float).eps)
     ## calculate specific ventilation
     result_rep1 = np.tile(result_gauss_dens1[:,:,:,ref][:,:,:,np.newaxis], [1,1,1, np.shape(scan1.numpy())[-1]])
     SV1 = (result_rep1 - result_gauss_dens1) / (result_gauss_dens1 + np.finfo(float).eps)
     ## eliminate extreme outliers
-    SV1[(SV1<-2) | (SV1>2)] = np.NaN
+    # SV1[(SV1<-2) | (SV1>2)] = np.NaN
     
     output_dir2 = dir_path2 + reg
     
     # load registered jacobian determinant for scan 2
     scan2_tx_path = output_dir2 + 'result_4d_tx.nii'
     scan2_tx = ants.image_read(scan2_tx_path)
-    
+    tranResultImage_np_tx = scan2_tx.numpy()
     # calculate specific ventilation for registered scan 2 
+    ## gaussian filtering time domain
+    result_gauss2 = fl.gaussian_filter(tranResultImage_np_tx * mask_close_rep, (0,0,0,3), mode='wrap', truncate=1) # gaussian kernel radius = 3 
     ## gaussian filtering, taking lung border into account
     density2 = fl.uniform_filter(mask_close_rep, size = (5,5,5,0))
-    result_gauss2 = fl.gaussian_filter(scan2_tx.numpy() * mask_close_rep, (2,2,2,0), truncate = 1) # gaussian kernel width = 3 
+    result_gauss2 = fl.gaussian_filter(result_gauss2, (3,3,3,0), truncate = 1) # gaussian kernel width = 5
     result_gauss_dens2 = result_gauss2 / (density2 + np.finfo(float).eps)
     ## calculate specific ventilation
     result_rep2 = np.tile(result_gauss_dens2[:,:,:,ref][:,:,:,np.newaxis], [1,1,1, np.shape(scan1.numpy())[-1]])
     SV2_tx = (result_rep2 - result_gauss_dens2) / (result_gauss_dens2 + np.finfo(float).eps)
     ## eliminate extreme outliers
-    SV2_tx[(SV2_tx<-2) | (SV2_tx>2)] = np.NaN
+    # SV2_tx[(SV2_tx<-2) | (SV2_tx>2)] = np.NaN
+    
+    # save 4D registered SV      
+    SV2_tx_ants = ants.from_numpy(SV2_tx)
+    ants.image_write(SV2_tx_ants, output_dir2 + 'SV_4d_tx.nii')
     
     # overlay masked jacobian
     SV_diff = np.ma.masked_where(mask_close_rep==0, SV1 - SV2_tx)
@@ -197,6 +206,7 @@ def display_sv_diff_2d(dir_path1, mask_dir1, dir_path2, reg):
     # load registered image for scan 1
     scan1_path = output_dir1 + 'result_4d.nii'
     scan1 = ants.image_read(scan1_path)
+    tranResultImage_np = scan1.numpy()
     
     # load mask for scan 1
     ref = 0
@@ -206,32 +216,37 @@ def display_sv_diff_2d(dir_path1, mask_dir1, dir_path2, reg):
     mask_close_rep = np.tile(mask_close_np[...,np.newaxis], [1,1,1,np.shape(mask_close.numpy())[-1]])
     
     # calculate specific ventilation for scan 1
+    ## gaussian filtering time domain
+    result_gauss1 = fl.gaussian_filter(tranResultImage_np * mask_close_rep, (0,0,0,3), mode='wrap', truncate=1) # gaussian kernel radius = 3 
     ## gaussian filtering, taking lung border into account
     density1 = fl.uniform_filter(mask_close_rep, size = (5,5,5,0))
-    result_gauss1 = fl.gaussian_filter(scan1.numpy() * mask_close_rep, (2,2,2,0), truncate = 1) # gaussian kernel width = 3 
+    result_gauss1 = fl.gaussian_filter(result_gauss1, (3,3,3,0), truncate = 1) # gaussian kernel width = 3 
     result_gauss_dens1 = result_gauss1 / (density1 + np.finfo(float).eps)
     ## calculate specific ventilation
     result_rep1 = np.tile(result_gauss_dens1[:,:,:,ref][:,:,:,np.newaxis], [1,1,1, np.shape(scan1.numpy())[-1]])
     SV1 = (result_rep1 - result_gauss_dens1) / (result_gauss_dens1 + np.finfo(float).eps)
     ## eliminate extreme outliers
-    SV1[(SV1<-2) | (SV1>2)] = np.NaN
+    # SV1[(SV1<-2) | (SV1>2)] = np.NaN
     
     output_dir2 = dir_path2 + reg
     
     # load registered jacobian determinant for scan 2
     scan2_tx_path = output_dir2 + 'result_4d_tx.nii'
     scan2_tx = ants.image_read(scan2_tx_path)
+    tranResultImage_np_tx = scan2_tx.numpy()
     
     # calculate specific ventilation for registered scan 2 
+    ## gaussian filtering time domain
+    result_gauss2 = fl.gaussian_filter(tranResultImage_np_tx * mask_close_rep, (0,0,0,3), mode='wrap', truncate=1) # gaussian kernel radius = 3 
     ## gaussian filtering, taking lung border into account
     density2 = fl.uniform_filter(mask_close_rep, size = (5,5,5,0))
-    result_gauss2 = fl.gaussian_filter(scan2_tx.numpy() * mask_close_rep, (2,2,2,0), truncate = 1) # gaussian kernel width = 3 
+    result_gauss2 = fl.gaussian_filter(result_gauss2, (3,3,3,0), truncate = 1) # gaussian kernel width = 3 
     result_gauss_dens2 = result_gauss2 / (density2 + np.finfo(float).eps)
     ## calculate specific ventilation
     result_rep2 = np.tile(result_gauss_dens2[:,:,:,ref][:,:,:,np.newaxis], [1,1,1, np.shape(scan1.numpy())[-1]])
     SV2_tx = (result_rep2 - result_gauss_dens2) / (result_gauss_dens2 + np.finfo(float).eps)
     ## eliminate extreme outliers
-    SV2_tx[(SV2_tx<-2) | (SV2_tx>2)] = np.NaN
+    # SV2_tx[(SV2_tx<-2) | (SV2_tx>2)] = np.NaN
     
     # overlay masked jacobian
     SV_diff = np.ma.masked_where(mask_close_rep==0, SV1 - SV2_tx)
@@ -247,7 +262,7 @@ def display_sv_diff_2d(dir_path1, mask_dir1, dir_path2, reg):
     for phase in range(np.shape(scan1)[-1]):
         # display overlaid Jacobian
         fig = plt.figure()
-        slc = 64
+        slc = 80
         # plot grayscale image
         fig = plt.imshow(scan1[:,slc,:,phase].T, cmap = 'gray')
         fig.set_clim(0.0, 0.7 * np.amax(scan1[:,slc,:,phase]))
@@ -263,7 +278,8 @@ def display_sv_diff_2d(dir_path1, mask_dir1, dir_path2, reg):
         plt.close()
         
 if __name__ =='__main__':
-        # 3DnT, sliding motion, ants
+    
+    # scan 1 image dir list
     output_dir_list1 = ['/data/larson4/UTE_Lung/2020-07-30_vo/reg/P44544/',
                        '/data/larson4/UTE_Lung/2020-08-20_vo/reg/P56320/',
                        '/data/larson4/UTE_Lung/2020-09-14_vo/reg/P12288/',
@@ -271,7 +287,7 @@ if __name__ =='__main__':
                        '/data/larson4/UTE_Lung/2020-11-10_vo/reg/P08704/',
                        '/data/larson4/UTE_Lung/2021-03-12_vo/reg/P86528/']
     
-    # load tight mask
+    # scan 1 tight mask list
     mask_dir_list1 = ['/data/larson4/UTE_Lung/2020-07-30_vo/seg/P44544/',
                      '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P56320/',
                      '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P12288/',
@@ -279,7 +295,7 @@ if __name__ =='__main__':
                      '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P08704/',
                      '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P86528/']
     
-    # 3DnT, sliding motion, ants
+    # scan 2 image dir list
     output_dir_list2 = ['/data/larson4/UTE_Lung/2020-07-30_vo/reg/P48128/',
                         '/data/larson4/UTE_Lung/2020-08-20_vo/reg/P59904/',
                         '/data/larson4/UTE_Lung/2020-09-14_vo/reg/P15872/',
@@ -287,7 +303,7 @@ if __name__ =='__main__':
                         '/data/larson4/UTE_Lung/2020-11-10_vo/reg/P12800/',
                         '/data/larson4/UTE_Lung/2021-03-12_vo/reg/P90112/']
     
-    # load tight mask
+    # scan 2 tight mask list
     mask_dir_list2 = ['/data/larson4/UTE_Lung/2020-07-30_vo/seg/P48128/',
                       '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P59904/',
                       '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P15872/',
@@ -295,8 +311,9 @@ if __name__ =='__main__':
                       '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P12800/',
                       '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/']
 
-    
+    # registration method list
     reg_list = ['3DnT_BSpline/','sliding_motion/','ants_syn_concat/']
+    
     
     reg_ind = 0
     for scn in range(len(output_dir_list1)):
