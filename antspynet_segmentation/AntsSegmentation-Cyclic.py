@@ -6,7 +6,7 @@ import ants
 import antspynet
 import numpy as np
 import ProtonMRILungSegmentation
-
+import sigpy.plot as pl
 
 def seg(img_path, output_file_prefix):
 
@@ -85,7 +85,6 @@ def seg(img_path, output_file_prefix):
     ants.image_write(mask_close_ants, mask_close_dir)
     
     # plot
-    import sigpy.plot as pl
     pl.ImagePlot(mask * image_np, x = 0, y = 2)   
     pl.ImagePlot(mask_dilate * image_np, x = 0, y = 2) 
     pl.ImagePlot(mask_close * image_np, x = 0, y = 2)
@@ -117,18 +116,20 @@ if __name__ == "__main__":
     #output_file_prefix = '/data/larson4/UTE_Lung/2020-02-13_vo/seg/P20480/'
     #output_file_prefix = '/data/larson4/UTE_Lung/2020-01-24_vo/seg/P37888/'
     
-    output_file_prefix_list = ['/data/larson4/UTE_Lung/2020-07-30_vo/seg/P44544/',
-                               '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P56320/',
-                               '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P12288/',
-                               '/data/larson4/UTE_Lung/2020-09-21_vo/seg/P28672/',
-                               '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P08704/',
-                               '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P86528/',
-                               '/data/larson4/UTE_Lung/2020-07-30_vo/seg/P48128/',
-                               '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P59904/',
-                               '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P15872/',
-                               '/data/larson4/UTE_Lung/2020-09-21_vo/seg/P32768/',
-                               '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P12800/',
-                               '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/']
+    output_file_prefix_list = [
+        '/data/larson4/UTE_Lung/2020-07-30_vo/seg/P44544/',
+        '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P56320/',
+        '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P12288/',
+        '/data/larson4/UTE_Lung/2020-09-21_vo/seg/P28672/',
+        '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P08704/',
+        '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P86528/',
+        '/data/larson4/UTE_Lung/2020-07-30_vo/seg/P48128/',
+        '/data/larson4/UTE_Lung/2020-08-20_vo/seg/P59904/',
+        '/data/larson4/UTE_Lung/2020-09-14_vo/seg/P15872/',
+        '/data/larson4/UTE_Lung/2020-09-21_vo/seg/P32768/',
+        '/data/larson4/UTE_Lung/2020-11-10_vo/seg/P12800/',
+        '/data/larson4/UTE_Lung/2021-03-12_vo/seg/P90112/'
+        ]
     
     #output_file_prefix = '/data/larson4/UTE_Lung/2021-04-06_ped_patient/seg/P38400/'
     for ind in range(len(img_path_list)):
